@@ -1,0 +1,41 @@
+
+name: Aliant Media Bot
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    env:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      OWNER_ID: ${{ secrets.OWNER_ID }}
+      DB_PATH: data/aliant_media.db
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check configuration
+        run: |
+          python -c "import os; assert os.getenv('BOT_TOKEN'), 'Missing BOT_TOKEN'; assert os.getenv('OWNER_ID', '').isdigit(), 'OWNER_ID must be numeric'; print('Configuration OK')"
+
+      - name: Start bot
+        run: python bot.py
